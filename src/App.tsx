@@ -1,26 +1,22 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+// src/components/TodoList.tsx
+import React, { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebaseConfig";
+import { TodoModel } from "./stores/Todos/types";
+import { Container } from "./styles";
+import HeaderTitleApp from "./components/HeaderTitleApp";
+import TodosList from "./components/TodoList";
 
-function App() {
+const TodoList: React.FC = () => {
+ 
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container>
+      <HeaderTitleApp />
+      <TodosList />
+     
+    </Container>
   );
-}
+};
 
-export default App;
+export default TodoList;
