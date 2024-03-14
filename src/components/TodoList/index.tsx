@@ -10,19 +10,31 @@ import { AddModal } from "../AddModal";
 
 const TodosList = () => {
   const [todos, setTodos] = useState<TodoModel[]>([]);
+  const [shopsChecked, setShopsChecked] = useState<TodoModel[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const getTodos = async () => {
     const todoCollection = collection(db, "todos");
     const snapshot = await getDocs(todoCollection);
-    const todoList: TodoModel[] = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      text: doc.data().text,
-      completed: doc.data().completed,
-      author: doc.data().author,
-      date: doc.data().date,
-    }));
+    const todoList: TodoModel[] = [];
+    const shopCheckedList: TodoModel[] = [];
+    snapshot.docs.forEach((doc) => {
+      const shop = {
+        id: doc.id,
+        text: doc.data().text,
+        completed: doc.data().completed,
+        author: doc.data().author,
+        date: doc.data().date,
+      }
+      if (!doc.data().completed)
+        todoList.push(shop)
+      else 
+        shopCheckedList.push(shop)
+          
+    });
     setTodos(todoList);
+    setShopsChecked(shopCheckedList);
+
 
   }
   useEffect(() => {
@@ -41,15 +53,22 @@ const TodosList = () => {
 
       const docRef = await updateDoc(doc(db, "todos", todo.id), todo);
       console.log("Document updated with ID: ", docRef);
-      const todosUpdated = todos.map((item) => {
-        if (item.id === todo.id) {
-          return todo;
-        }
-        return item;
+
+      if(todo.completed){
+        const newShopsChecked = [...shopsChecked, todo]
+        setShopsChecked(newShopsChecked);
+
+        const newShopsUnchecked = todos.filter(i=> i.id != todo.id)
+        setTodos(newShopsUnchecked)
+      }else{
+        const newShopsChecked = shopsChecked.filter(i=>i.id != todo.id)
+        setShopsChecked(newShopsChecked);
+
+        const newShopsUnchecked = [...todos, todo]
+        setTodos(newShopsUnchecked)
+
       }
-      );
-      setTodos(todosUpdated)
-      // setUser(state)
+
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -77,8 +96,16 @@ const TodosList = () => {
 
       const docRef = await deleteDoc(doc(db, "todos", id));
       console.log("Document deleted with ID: ", docRef);
-      const todosUpdated = todos.filter((item) => item.id !== id)
-      setTodos(todosUpdated)
+      
+      if(todos.some(i=>i.id === id)){
+        const todosUpdated = todos.filter((item) => item.id !== id)
+        setTodos(todosUpdated)
+        
+      }else{
+        const shopsUpdated = shopsChecked.filter((item) => item.id !== id)
+        setShopsChecked(shopsUpdated)
+
+      }
 
     } catch (e) {
       console.error("Error adding document: ", e);
@@ -88,6 +115,7 @@ const TodosList = () => {
     }
   }
 
+
   return (
     <Container>
       <ListContainer>
@@ -95,6 +123,19 @@ const TodosList = () => {
 
         <List>
           {todos.map((todo) => (
+            <ItemList
+              id={todo.id}
+              author={todo.author}
+              completed={todo.completed}
+              date={todo.date}
+              text={todo.text}
+              todo={todo}
+              saveItem={saveItem}
+              deleteItem={deleteItem}
+            />
+
+          ))}
+          {shopsChecked.map((todo) => (
             <ItemList
               id={todo.id}
               author={todo.author}
